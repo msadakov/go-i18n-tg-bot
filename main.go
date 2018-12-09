@@ -80,9 +80,22 @@ func main() {
 
 		log.Info("[%s]: %s", update.Message.From.UserName, update.Message.Text)
 
-		msg := tg.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		msg.ReplyToMessageID = update.Message.MessageID
+		usrLang := message.MatchLanguage(update.Message.From.LanguageCode)
+		p := message.NewPrinter(usrLang)
 
+		var reply string
+		switch update.Message.Text {
+		case "/start":
+			reply = cmdStart(p, update.Message.From.FirstName, bot.Self.FirstName)
+		case "/newyear":
+			reply = cmdNewYear(p)
+		case "/rate":
+			reply = cmdRate(p, usrLang)
+		default:
+			reply = update.Message.Text
+		}
+
+		msg := tg.NewMessage(update.Message.Chat.ID, reply)
 		_, err := bot.Send(msg)
 		if err != nil {
 			log.Error("Can't send a message: %v", err)
